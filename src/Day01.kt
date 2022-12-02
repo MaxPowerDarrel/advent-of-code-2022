@@ -1,15 +1,8 @@
 fun main() {
-    fun part1(input: List<String>): Int {
-        val inventory: List<List<Int>> = partitionInput(input)
-        return inventory.maxOf { list -> list.reduce { acc, i -> acc + i } }
-    }
-
-    fun part2(input: List<String>): Int {
-        val inventory: List<List<Int>> = partitionInput(input)
-        return inventory.sortedByDescending { list -> list.reduce { acc, i -> acc + i } }
-            .take(3)
-            .sumOf { list -> list.sumOf { it } }
-    }
+    fun part1(input: List<String>): Int = partitionInput(input)[0]
+    fun part2(input: List<String>): Int = partitionInput(input)
+        .take(3)
+        .sumOf { it }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day01_test")
@@ -21,19 +14,14 @@ fun main() {
     println(part2(input))
 }
 
-private fun partitionInput(input: List<String>): List<List<Int>> {
-    val inventory: MutableList<MutableList<Int>> = mutableListOf()
-    var newList = true
-    input.forEachIndexed { index, value ->
-        if (newList) {
-            inventory.add(mutableListOf())
-            newList = false
-        }
-        if (input[index].isBlank()) {
-            newList = true
-        } else {
-            inventory[inventory.size - 1].add(value.toInt())
-        }
-    }
-    return inventory
+/**
+ * returns a list of ints sorted descending.  The ints are added together until a blank line is found, that sum is then inserted into the list
+ * and a new tally is begun.
+ */
+private fun partitionInput(input: List<String>): List<Int> {
+    tailrec fun accumulator(index: Int, currentTotal: Int, listOfTotals: List<Int>): List<Int> =
+        if (index == input.size) listOfTotals + listOf(currentTotal)
+        else if (input[index].isBlank()) accumulator(index + 1, 0, listOfTotals + currentTotal)
+        else accumulator(index + 1, currentTotal + input[index].toInt(), listOfTotals)
+    return accumulator(0, 0, emptyList()).sortedByDescending { it }
 }
